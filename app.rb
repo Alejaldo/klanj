@@ -13,19 +13,29 @@ before do
 	init_db
 end
 
+def zaebca
+	init_db
+	post_id = params[:post_id]
+	results = @db.execute 'select * from Posts where id = ?', [post_id]
+	@row = results[0]
+
+	@comments = @db.execute 'select * from Comments where post_id = ? order by id', [post_id]
+end
+
 configure do
 	init_db
 	@db.execute 'CREATE TABLE if not exists "Posts" (
 		"id"	INTEGER,
 		"created_date"	DATE,
 		"content"	TEXT,
+		"username" TEXT,
 		PRIMARY KEY("id" AUTOINCREMENT)
 	);'
 
 	@db.execute 'CREATE TABLE if not exists "Comments" (
 		"id"	INTEGER,
 		"created_date"	DATE,
-		"content"	TEXT,
+		"comment"	TEXT,
 		"post_id" INTEGER,
 		PRIMARY KEY("id" AUTOINCREMENT)
 	);'
@@ -44,13 +54,19 @@ end
 
 post '/new' do
 	content = params[:content]
+	username = params[:username]
 
-	if content.size <= 0 
-		@error = 'Type post text'
+	errors = {
+		:content => 'Type post text',
+		:username => 'Type your Name'
+	}
+
+	@error = errors.select { |key, _| params[key] == '' }.values.join(", ")
+	if @error != ''
 		return erb :new
 	end
 
-	@db.execute 'insert into Posts (content, created_date) values (?, datetime());', [content]
+	@db.execute 'insert into Posts (content, username, created_date) values (?, ?, datetime());', [content, username]
 
 	redirect to '/'
 	erb "You typed: -- #{content} --"
@@ -59,19 +75,23 @@ end
 get '/details/:post_id' do
 	post_id = params[:post_id]
 
-	results = @db.execute 'select * from Posts where id = ?', [post_id]
-	@row = results[0]
-
-	@comments = @db.execute 'select * from Comments where post_id = ? order by id', [post_id]
+	zaebca
 
 	erb :details
 end
 
 post '/details/:post_id' do
 	post_id = params[:post_id]
-	content = params[:content]
+	comment = params[:comment]
 
-	@db.execute 'insert into Comments (content, created_date, post_id) values (?, datetime(), ?);', [content, post_id]
+	zaebca
+
+	if comment.size <= 0 
+		@error = 'Type your comment'
+		return erb :details
+	end
+
+	@db.execute 'insert into Comments (comment, created_date, post_id) values (?, datetime(), ?);', [comment, post_id]
 
 	redirect to ('/details/' + post_id)
 end

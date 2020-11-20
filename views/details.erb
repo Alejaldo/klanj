@@ -10,19 +10,19 @@
 <br />
 <h4>Comments:</h4>
 <br />
-<% @comments.each do |comment| %>
+<% @comments.each do |commento| %>
     <p>
-        <%= comment['content'] %>
+        <%= commento['comment'] %>
         <br />
         <br />
-        <span style="font-size: 75%; color: #999">Added at <%= comment['created_date'] %></span>
+        <span style="font-size: 75%; color: #999">Added at <%= commento['created_date'] %></span>
     </p>
     <hr />
 <% end %>
 
 <p>
     <form action="/details/<%= @row['id'] %>" method="POST" role="form">
-        <textarea name="content" class="form-control" style="width: 400px" rows="6" placeholder="Type text here"></textarea></br>
+        <textarea name="comment" class="form-control" style="width: 400px" rows="6" placeholder="Type text here"></textarea></br>
         <button type="submit" class="btn btn-primary">Add comment</button>
     </form>
 </p>
